@@ -1,4 +1,4 @@
-version: "3"
+#version: "3"
 networks: 
   vote: 
     driver: bridge
@@ -7,30 +7,50 @@ volumes:
    db-data: 
 
 services: 
-    vote: 
-      image: schoolofdevops/vote
-      ports: 
-        - 80
-      networks: 
-        - vote
-      depends_on: 
-        - redis
+    
+    vote:
+    build:
+      context: ./vote
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - vote
+    depends_on:
+      - redis
+
+    # vote: 
+    #   image: schoolofdevops/vote
+    #   ports: 
+    #     - 80
+    #   networks: 
+    #     - vote
+    #   depends_on: 
+    #     - redis
 
     redis: 
       image: redis:alpine
       networks: 
         - vote
     
-    worker: 
+    worker:
       image: initcron/worker:v2
-      networks: 
+      networks:
         - vote
-      depends_on: 
-        - redis
+      depends_on:
+      - redis
+      deploy:
+        resources:
+          limits:
+            memory: 256M
+          reservations:
+            memory: 128M
  
-    db: 
+    db:
       image: postgres:9.4
-      networks: 
+      environment:
+        POSTGRES_PASSWORD: postgres
+      networks:
         - vote
       volumes:
         - "db-data:/var/lib/postgresql/data"
