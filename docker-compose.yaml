@@ -7,9 +7,6 @@ volumes:
    db-data: 
 
 services: 
-    
-
-
     # vote: 
     #   image: schoolofdevops/vote
     #   ports: 
@@ -44,10 +41,22 @@ services:
       deploy:
         resources:
           limits:
-            memory: 256M
+            memory: 512M
           reservations:
-            memory: 128M
+            memory: 256M
+      mem_limit: 256m  
  
+    worker_for_maven:
+      build:
+        context: ./worker
+        dockerfile: Dockerfile
+      networks:
+        - vote
+      depends_on:
+        - redis
+        - db
+      mem_limit: 256m
+
     db:
       image: postgres:9.4
       environment:
@@ -65,4 +74,22 @@ services:
         - db
       networks: 
         - vote
+    
+    adminer:
+      image: adminer
+      ports:
+        - "8080:8080"
+      networks:
+        - vote
+
+    dotnet-worker:
+      build:
+        context: ./worker/src/Worker
+        dockerfile: Dockerfile
+      networks:
+        - vote
+      depends_on:
+        - redis
+        - db
+
     
