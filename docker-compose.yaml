@@ -8,16 +8,7 @@ volumes:
 
 services: 
     
-    vote:
-    build:
-      context: ./vote
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    networks:
-      - vote
-    depends_on:
-      - redis
+
 
     # vote: 
     #   image: schoolofdevops/vote
@@ -32,6 +23,17 @@ services:
       image: redis:alpine
       networks: 
         - vote
+    
+    vote:
+      build:
+        context: ./vote
+        dockerfile: Dockerfile
+      ports:
+        - "80:80"
+      networks:
+        - vote
+      depends_on:
+        - redis
     
     worker:
       image: initcron/worker:v2
