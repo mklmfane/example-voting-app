@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Except needed files
+!tests.sh
+!render.js
+!Dockerfile

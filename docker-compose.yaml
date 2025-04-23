@@ -1,21 +1,13 @@
-#version: "3"
 networks: 
   vote: 
     driver: bridge
+  front-tier:
+  back-tier:    
 
 volumes: 
-   db-data: 
+  db-data: 
 
 services: 
-    # vote: 
-    #   image: schoolofdevops/vote
-    #   ports: 
-    #     - 80
-    #   networks: 
-    #     - vote
-    #   depends_on: 
-    #     - redis
-
     redis: 
       image: redis:alpine
       networks: 
@@ -29,8 +21,12 @@ services:
         - "80:80"
       networks:
         - vote
+        - front-tier
+        - back-tier
       depends_on:
         - redis
+        - db        
+
     
     worker:
       image: initcron/worker:v2
@@ -63,6 +59,8 @@ services:
         POSTGRES_PASSWORD: postgres
       networks:
         - vote
+        - back-tier
+
       volumes:
         - "db-data:/var/lib/postgresql/data"
    
@@ -84,12 +82,35 @@ services:
 
     dotnet-worker:
       build:
-        context: ./worker/src/Worker
+        context: ./worker_dotnet
         dockerfile: Dockerfile
       networks:
         - vote
+        - back-tier
       depends_on:
         - redis
         - db
 
-    
+    sut:
+      build:
+        context: ./e2e/tests/
+      depends_on:
+        - vote
+        - result
+        - worker
+      networks:
+        - front-tier
+
+    result:
+      build:
+        context: ./result
+        dockerfile: Dockerfile
+      ports:
+        - "5002:80"
+      depends_on:
+        - redis
+        - db
+      networks:
+        - front-tier
+        - back-tier
+

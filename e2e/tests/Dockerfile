@@ -1,12 +1,23 @@
-FROM node:8.16.0-jessie-slim
+FROM node:23.11-alpine3.21
 
-RUN apt-get update -qq && apt-get install -qy \ 
+# Install required dependencies
+RUN apk add --no-cache \
     ca-certificates \
     bzip2 \
     curl \
-    libfontconfig \
-    --no-install-recommends
+    fontconfig
+
+# Install PhantomJS globally
 RUN yarn global add phantomjs-prebuilt
-ADD . /app
+
+# Set working directory
 WORKDIR /app
+
+# Copy everything allowed by .dockerignore
+COPY . .
+
+# Make test script executable
+RUN chmod +x tests.sh
+
+# Run the test script
 CMD ["/app/tests.sh"]
